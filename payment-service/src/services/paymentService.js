@@ -12,6 +12,12 @@ const {
 const TABLE_NAME =
     process.env.PAYMENT_TABLE || "Payment";
 
+const sns = require("../config/sns");
+
+const {
+    PublishCommand
+} = require("@aws-sdk/client-sns");
+
 // Get All Payments
 async function getPayments() {
 
@@ -36,6 +42,14 @@ async function createPayment(paymentData) {
     const newPayment = {
         paymentId: uuidv4(),
         orderId: paymentData.orderId,
+
+        customerName: paymentData.customerName,
+        email: paymentData.email,
+        phone: paymentData.phone,
+
+        productId: paymentData.productId,
+        quantity: paymentData.quantity,
+
         amount: paymentData.amount,
         paymentMethod: paymentData.paymentMethod,
         status: "SUCCESS"
@@ -46,6 +60,30 @@ async function createPayment(paymentData) {
             TableName: TABLE_NAME,
             Item: newPayment
         })
+    );
+
+    await sns.send(
+    new PublishCommand({
+        TopicArn: process.env.SNS_TOPIC_ARN,
+        Subject: "Payment Success",
+        Message: JSON.stringify({
+            event: "PAYMENT_SUCCESS",
+
+            paymentId: newPayment.paymentId,
+            orderId: newPayment.orderId,
+
+            customerName: newPayment.customerName,
+            email: newPayment.email,
+            phone: newPayment.phone,
+
+            productId: newPayment.productId,
+            quantity: newPayment.quantity,
+
+            amount: newPayment.amount,
+            paymentMethod: newPayment.paymentMethod,
+            status: newPayment.status
+        })
+    })
     );
 
     return newPayment;

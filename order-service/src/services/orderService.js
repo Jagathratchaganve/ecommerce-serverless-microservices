@@ -65,13 +65,19 @@ async function createOrder(orderData) {
     try {
 
         const paymentResponse =
-        await axios.post(
+            await axios.post(
             `${process.env.PAYMENT_SERVICE_URL}/api/payments`,
             {
                 orderId,
+
+                customerName: orderData.customerName,
+                email: orderData.email,
+                phone: orderData.phone,
+
+                productId: orderData.productId,
+                quantity: orderData.quantity,
                 amount: orderData.amount,
-                paymentMethod:
-                orderData.paymentMethod
+                paymentMethod: orderData.paymentMethod
             }
         );
 
