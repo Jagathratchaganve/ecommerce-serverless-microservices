@@ -7,7 +7,21 @@ async function processEvent(event) {
         const snsMessage = JSON.parse(record.body);
 
         const paymentEvent = JSON.parse(snsMessage.Message);
+        console.log("========== PAYMENT EVENT ==========");
+        console.log(paymentEvent);
 
+        console.log("Customer Name:", paymentEvent.customerName);
+        console.log("Email:", paymentEvent.email);
+        console.log("Phone:", paymentEvent.phone);
+        console.log("==================================");
+
+        if (!paymentEvent.email) {
+
+            console.log("Email missing");
+        
+            return;
+        }
+        
         const mailOptions = {
             from: process.env.EMAIL,
             to: paymentEvent.email,
