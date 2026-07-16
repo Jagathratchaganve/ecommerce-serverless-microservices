@@ -1,33 +1,41 @@
-const express = require('express');
+const express = require("express");
 
-const router =
-express.Router();
+const router = express.Router();
 
-const orderController =
-require('../controllers/orderController');
+const orderController = require("../controllers/orderController");
+
+const authenticate = require("../middleware/authenticate");
+const authorize = require("../middleware/authorize");
+
+router.use(authenticate);
 
 router.get(
-    '/',
+    "/",
+    authorize("Admin", "User"),
     orderController.getAllOrders
 );
 
-router.post(
-    '/',
-    orderController.createOrder
-);
-
 router.get(
-    '/:orderId',
+    "/:orderId",
+    authorize("Admin", "User"),
     orderController.getOrderById
 );
 
+router.post(
+    "/",
+    authorize("User"),
+    orderController.createOrder
+);
+
 router.put(
-    '/:orderId',
+    "/:orderId",
+    authorize("Admin"),
     orderController.updateOrder
 );
 
 router.delete(
-    '/:orderId',
+    "/:orderId",
+    authorize("Admin"),
     orderController.deleteOrder
 );
 

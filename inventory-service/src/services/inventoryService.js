@@ -12,6 +12,8 @@ const {
 
 const TABLE_NAME = process.env.INVENTORY_TABLE || "Inventory";
 
+console.log("PRODUCT_SERVICE_URL:", process.env.PRODUCT_SERVICE_URL);
+
 // Get All Inventory
 async function getInventory() {
 
@@ -25,13 +27,28 @@ async function getInventory() {
 }
 
 // Create Inventory
-async function createInventory(inventoryData) {
+async function createInventory(
+    inventoryData,
+    accessToken
+) {
 
     // Verify Product Exists
     try {
 
         await axios.get(
-            `${process.env.PRODUCT_SERVICE_URL}/api/products/${inventoryData.productId}`
+
+            `${process.env.PRODUCT_SERVICE_URL}/api/products/${inventoryData.productId}`,
+
+            {
+
+                headers: {
+
+                    Authorization: accessToken
+
+                }
+
+            }
+
         );
 
     } catch (error) {
@@ -65,18 +82,27 @@ async function createInventory(inventoryData) {
 }
 
 // Get Inventory By Product Id
+// Get Inventory By Product Id
 async function getInventoryByProductId(productId) {
 
     const result = await dynamoDB.send(
+
         new GetCommand({
+
             TableName: TABLE_NAME,
+
             Key: {
+
                 productId
+
             }
+
         })
+
     );
 
     return result.Item || null;
+
 }
 
 // Update Inventory

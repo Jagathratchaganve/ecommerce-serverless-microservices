@@ -1,33 +1,41 @@
-const express = require('express');
+const express = require("express");
 
-const router =
-express.Router();
+const router = express.Router();
 
-const paymentController =
-require('../controllers/paymentController');
+const paymentController = require("../controllers/paymentController");
+
+const authenticate = require("../middleware/authenticate");
+const authorize = require("../middleware/authorize");
+
+router.use(authenticate);
 
 router.get(
-    '/',
+    "/",
+    authorize("Admin", "User"),
     paymentController.getAllPayments
 );
 
 router.post(
-    '/',
+    "/",
+    authorize("Admin", "User"),
     paymentController.createPayment
 );
 
 router.get(
-    '/:paymentId',
+    "/:paymentId",
+    authorize("Admin", "User"),
     paymentController.getPaymentById
 );
 
 router.put(
-    '/:paymentId',
+    "/:paymentId",
+    authorize("Admin"),
     paymentController.updatePayment
 );
 
 router.delete(
-    '/:paymentId',
+    "/:paymentId",
+    authorize("Admin"),
     paymentController.deletePayment
 );
 

@@ -31,7 +31,7 @@ async function getPayments() {
 }
 
 // Create Payment
-async function createPayment(paymentData) {
+async function createPayment(userId, paymentData) {
 
     if (paymentData.amount <= 0) {
         throw new Error(
@@ -41,6 +41,7 @@ async function createPayment(paymentData) {
 
     const newPayment = {
         paymentId: uuidv4(),
+        userId,
         orderId: paymentData.orderId,
 
         customerName: paymentData.customerName,

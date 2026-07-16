@@ -1,144 +1,216 @@
-const cartService =
-require('../services/cartService');
+const cartService = require("../services/cartService");
 
-async function getAllCarts(req, res) {
+// Get My Cart
+async function getMyCart(req, res) {
 
     try {
 
-        const carts =
-        await cartService.getCarts();
+        const cart = await cartService.getCartByUserId(
+            req.user.userId
+        );
 
-        res.status(200).json(carts);
+        if (!cart) {
+
+            return res.status(404).json({
+                success: false,
+                message: "Cart not found"
+            });
+
+        }
+
+        res.status(200).json(cart);
 
     } catch (error) {
 
+        console.error(error);
+
         res.status(500).json({
+            success: false,
             message: error.message
         });
 
     }
+
 }
 
+// Create Cart
 async function createCart(req, res) {
 
     try {
 
-        const cart =
-        await cartService.createCart(
-            req.body
+        const cart = await cartService.createCart(
+            req.user.userId
         );
 
         res.status(201).json(cart);
 
     } catch (error) {
 
+        console.error(error);
+
         res.status(500).json({
+            success: false,
             message: error.message
         });
 
     }
+
 }
 
-async function getCartByUserId(req, res) {
-
-    const cart =
-    await cartService.getCartByUserId(
-        req.params.userId
-    );
-
-    if (!cart) {
-
-        return res.status(404).json({
-            message: 'Cart not found'
-        });
-    }
-
-    res.json(cart);
-}
-
+// Add Item To Cart
 async function addItemToCart(req, res) {
 
     try {
 
-        const cart =
-        await cartService.addItemToCart(
-            req.params.userId,
-            req.body
+        const cart = await cartService.addItemToCart(
+
+            req.user.userId,
+
+            req.body,
+
+            req.headers.authorization
+
         );
 
-        res.json(cart);
+        res.status(200).json(cart);
 
     } catch (error) {
 
+        console.error(error);
+
         res.status(500).json({
+            success: false,
             message: error.message
         });
+
     }
+
 }
 
+// Update Cart Item
 async function updateCartItem(req, res) {
 
-    const cart =
-    await cartService.updateCartItem(
-        req.params.userId,
-        req.params.productId,
-        req.body.quantity
-    );
+    try {
 
-    if (!cart) {
+        const cart = await cartService.updateCartItem(
 
-        return res.status(404).json({
-            message: 'Item not found'
+            req.user.userId,
+
+            req.params.productId,
+
+            req.body.quantity
+
+        );
+
+        if (!cart) {
+
+            return res.status(404).json({
+                success: false,
+                message: "Item not found"
+            });
+
+        }
+
+        res.status(200).json(cart);
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            success: false,
+            message: error.message
         });
+
     }
 
-    res.json(cart);
 }
 
+// Remove Cart Item
 async function removeCartItem(req, res) {
 
-    const cart =
-    await cartService.removeCartItem(
-        req.params.userId,
-        req.params.productId
-    );
+    try {
 
-    if (!cart) {
+        const cart = await cartService.removeCartItem(
 
-        return res.status(404).json({
-            message: 'Item not found'
+            req.user.userId,
+
+            req.params.productId
+
+        );
+
+        if (!cart) {
+
+            return res.status(404).json({
+                success: false,
+                message: "Item not found"
+            });
+
+        }
+
+        res.status(200).json(cart);
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            success: false,
+            message: error.message
         });
+
     }
 
-    res.json(cart);
 }
 
+// Delete Cart
 async function deleteCart(req, res) {
 
-    const cart =
-    await cartService.deleteCart(
-        req.params.userId
-    );
+    try {
 
-    if (!cart) {
+        const cart = await cartService.deleteCart(
+            req.user.userId
+        );
 
-        return res.status(404).json({
-            message: 'Cart not found'
+        if (!cart) {
+
+            return res.status(404).json({
+                success: false,
+                message: "Cart not found"
+            });
+
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Cart deleted successfully"
         });
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
     }
 
-    res.json({
-        message:
-        'Cart deleted successfully'
-    });
 }
 
 module.exports = {
-    getAllCarts,
+
+    getMyCart,
+
     createCart,
-    getCartByUserId,
+
     addItemToCart,
+
     updateCartItem,
+
     removeCartItem,
+
     deleteCart
+
 };

@@ -25,7 +25,11 @@ async function getOrders() {
 }
 
 // Create Order
-async function createOrder(orderData) {
+async function createOrder(
+    orderData,
+    accessToken,
+    userId
+){
 
     let inventoryItem;
 
@@ -34,7 +38,19 @@ async function createOrder(orderData) {
 
         const inventoryResponse =
         await axios.get(
-            `${process.env.INVENTORY_SERVICE_URL}/api/inventory/${orderData.productId}`
+
+        `${process.env.INVENTORY_SERVICE_URL}/api/inventory/${orderData.productId}`,
+
+            {
+
+                headers: {
+
+                    Authorization: accessToken
+
+                }
+
+            }
+
         );
 
         inventoryItem = inventoryResponse.data;
@@ -66,20 +82,42 @@ async function createOrder(orderData) {
 
         const paymentResponse =
             await axios.post(
-            `${process.env.PAYMENT_SERVICE_URL}/api/payments`,
-            {
-                orderId,
 
-                customerName: orderData.customerName,
-                email: orderData.email,
-                phone: orderData.phone,
+    `${process.env.PAYMENT_SERVICE_URL}/api/payments`,
 
-                productId: orderData.productId,
-                quantity: orderData.quantity,
-                amount: orderData.amount,
-                paymentMethod: orderData.paymentMethod
-            }
-        );
+    {
+
+        orderId,
+
+        userId,
+
+        customerName: orderData.customerName,
+
+        email: orderData.email,
+
+        phone: orderData.phone,
+
+        productId: orderData.productId,
+
+        quantity: orderData.quantity,
+
+        amount: orderData.amount,
+
+        paymentMethod: orderData.paymentMethod
+
+    },
+
+    {
+
+        headers: {
+
+            Authorization: accessToken
+
+        }
+
+    }
+
+);
 
         payment =
         paymentResponse.data;
@@ -105,6 +143,8 @@ async function createOrder(orderData) {
     const newOrder = {
 
         orderId,
+
+        userId,
 
         productId:
         orderData.productId,

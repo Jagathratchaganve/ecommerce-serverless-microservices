@@ -1,32 +1,41 @@
-const express = require('express');
+const express = require("express");
 
 const router = express.Router();
 
-const productController =
-require('../controllers/productController');
+const productController = require("../controllers/productController");
+
+const authenticate = require("../middleware/authenticate");
+const authorize = require("../middleware/authorize");
+
+router.use(authenticate);
 
 router.get(
-    '/',
+    "/",
+    authorize("Admin", "User"),
     productController.getAllProducts
 );
 
-router.post(
-    '/',
-    productController.createProduct
-);
-
 router.get(
-    '/:id',
+    "/:id",
+    authorize("Admin", "User"),
     productController.getProductById
 );
 
+router.post(
+    "/",
+    authorize("Admin"),
+    productController.createProduct
+);
+
 router.put(
-    '/:id',
+    "/:id",
+    authorize("Admin"),
     productController.updateProduct
 );
 
 router.delete(
-    '/:id',
+    "/:id",
+    authorize("Admin"),
     productController.deleteProduct
 );
 

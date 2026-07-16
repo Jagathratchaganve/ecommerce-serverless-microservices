@@ -23,9 +23,12 @@ async function createInventory(req, res) {
 
     try {
 
-        const inventory =
-        await inventoryService.createInventory(
-            req.body
+        const inventory = await inventoryService.createInventory(
+
+            req.body,
+
+            req.headers.authorization
+
         );
 
         res.status(201).json(inventory);

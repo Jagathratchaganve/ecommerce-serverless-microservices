@@ -1,42 +1,47 @@
-const express = require('express');
+const express = require("express");
 
 const router = express.Router();
 
-const cartController =
-require('../controllers/cartController');
+const cartController = require("../controllers/cartController");
+
+const authenticate = require("../middleware/authenticate");
+const authorize = require("../middleware/authorize");
+
+router.use(authenticate);
 
 router.get(
-    '/',
-    cartController.getAllCarts
+    "/",
+    authorize("Admin", "User"),
+    cartController.getMyCart
 );
 
 router.post(
-    '/',
+    "/",
+    authorize("Admin", "User"),
     cartController.createCart
 );
 
-router.get(
-    '/:userId',
-    cartController.getCartByUserId
-);
-
 router.post(
-    '/:userId/items',
+    "/items",
+    authorize("Admin", "User"),
     cartController.addItemToCart
 );
 
 router.put(
-    '/:userId/items/:productId',
+    "/items/:productId",
+    authorize("Admin", "User"),
     cartController.updateCartItem
 );
 
 router.delete(
-    '/:userId/items/:productId',
+    "/items/:productId",
+    authorize("Admin", "User"),
     cartController.removeCartItem
 );
 
 router.delete(
-    '/:userId',
+    "/",
+    authorize("Admin", "User"),
     cartController.deleteCart
 );
 

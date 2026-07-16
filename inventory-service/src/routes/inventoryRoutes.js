@@ -5,28 +5,40 @@ const router = express.Router();
 const inventoryController =
 require('../controllers/inventoryController');
 
+const authenticate = require("../middleware/authenticate");
+const authorize = require("../middleware/authorize");
+
+router.use(authenticate);
+
 router.get(
-    '/',
+    "/",
+    authorize("Admin", "User"),
     inventoryController.getAllInventory
 );
 
-router.post(
-    '/',
-    inventoryController.createInventory
-);
+
 
 router.get(
-    '/:productId',
+     "/:productId",
+    authorize("Admin", "User"),
     inventoryController.getInventoryByProductId
 );
 
+router.post(
+    "/",
+    authorize("Admin"),
+    inventoryController.createInventory
+);
+
 router.put(
-    '/:productId',
+     "/:productId",
+    authorize("Admin"),
     inventoryController.updateInventory
 );
 
 router.delete(
-    '/:productId',
+    "/:productId",
+    authorize("Admin"),
     inventoryController.deleteInventory
 );
 

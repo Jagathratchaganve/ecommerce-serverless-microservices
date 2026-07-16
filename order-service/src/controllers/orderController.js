@@ -1,85 +1,99 @@
-const orderService =
-require('../services/orderService');
+const orderService = require("../services/orderService");
 
-async function getAllOrders(
-    req,
-    res
-) {
+// Get All Orders
+async function getAllOrders(req, res) {
 
     try {
 
-        const orders =
-        await orderService.getOrders();
+        const orders = await orderService.getOrders();
 
-        res.status(200).json(
-            orders
-        );
+        res.status(200).json(orders);
 
     } catch (error) {
 
         res.status(500).json({
+            success: false,
             message: error.message
         });
 
     }
+
 }
 
-async function createOrder(
-    req,
-    res
-) {
+// Create Order
+async function createOrder(req, res) {
 
     try {
 
-        const order =
-        await orderService.createOrder(
-            req.body
+        const order = await orderService.createOrder(
+
+            req.body,
+
+            req.headers.authorization,
+
+            req.user.userId
+
         );
 
-        res.status(201).json(
-            order
-        );
+        res.status(201).json(order);
 
     } catch (error) {
 
         res.status(500).json({
+
+            success: false,
+
             message: error.message
-        });
 
-    }
-}
-
-async function getOrderById(
-    req,
-    res
-) {
-
-    const order =
-    await orderService.getOrderById(
-        req.params.orderId
-    );
-
-    if (!order) {
-
-        return res.status(404).json({
-            message:
-            'Order not found'
         });
 
     }
 
-    res.json(order);
 }
 
-async function updateOrder(
-    req,
-    res
-) {
+// Get Order By Id
+async function getOrderById(req, res) {
 
     try {
 
-        const order =
-        await orderService.updateOrder(
+        const order = await orderService.getOrderById(
+            req.params.orderId
+        );
+
+        if (!order) {
+
+            return res.status(404).json({
+
+                success: false,
+
+                message: "Order not found"
+
+            });
+
+        }
+
+        res.status(200).json(order);
+
+    } catch (error) {
+
+        res.status(500).json({
+
+            success: false,
+
+            message: error.message
+
+        });
+
+    }
+
+}
+
+// Update Order
+async function updateOrder(req, res) {
+
+    try {
+
+        const order = await orderService.updateOrder(
             req.params.orderId,
             req.body
         );
@@ -87,52 +101,84 @@ async function updateOrder(
         if (!order) {
 
             return res.status(404).json({
-                message:
-                'Order not found'
+
+                success: false,
+
+                message: "Order not found"
+
             });
 
         }
 
-        res.json(order);
+        res.status(200).json(order);
 
     } catch (error) {
 
         res.status(500).json({
+
+            success: false,
+
             message: error.message
+
         });
 
     }
+
 }
 
-async function deleteOrder(
-    req,
-    res
-) {
+// Delete Order
+async function deleteOrder(req, res) {
 
-    const order =
-    await orderService.deleteOrder(
-        req.params.orderId
-    );
+    try {
 
-    if (!order) {
+        const order = await orderService.deleteOrder(
+            req.params.orderId
+        );
 
-        return res.status(404).json({
-            message:
-            'Order not found'
+        if (!order) {
+
+            return res.status(404).json({
+
+                success: false,
+
+                message: "Order not found"
+
+            });
+
+        }
+
+        res.status(200).json({
+
+            success: true,
+
+            message: "Order deleted successfully"
+
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+
+            success: false,
+
+            message: error.message
+
         });
 
     }
 
-    res.json({
-        message:
-        'Order deleted successfully'
-    });
 }
 
 module.exports = {
+
     getAllOrders,
+
     createOrder,
+
     getOrderById,
+
     updateOrder,
+
     deleteOrder
+
 };
