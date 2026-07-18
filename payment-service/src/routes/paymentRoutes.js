@@ -21,6 +21,12 @@ router.post(
     paymentController.createPayment
 );
 
+router.post(
+    "/:paymentId/success",
+    authorize("Admin", "User"),
+    paymentController.confirmPaymentSuccess
+);
+
 router.get(
     "/:paymentId",
     authorize("Admin", "User"),

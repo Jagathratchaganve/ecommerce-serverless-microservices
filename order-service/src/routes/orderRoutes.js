@@ -10,9 +10,15 @@ const authorize = require("../middleware/authorize");
 router.use(authenticate);
 
 router.get(
-    "/",
-    authorize("Admin", "User"),
+    "/all",
+    authorize("Admin"),
     orderController.getAllOrders
+);
+
+router.get(
+    "/my",
+    authorize("Admin", "User"),
+    orderController.getMyOrders
 );
 
 router.get(
@@ -23,13 +29,19 @@ router.get(
 
 router.post(
     "/",
-    authorize("User"),
+    authorize("Admin", "User"),
     orderController.createOrder
 );
 
 router.put(
+    "/:orderId/status",
+    authorize("Admin", "User"),
+    orderController.updateOrder
+);
+
+router.put(
     "/:orderId",
-    authorize("Admin"),
+    authorize("Admin", "User"),
     orderController.updateOrder
 );
 

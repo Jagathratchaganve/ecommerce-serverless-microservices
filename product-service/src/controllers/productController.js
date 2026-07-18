@@ -17,19 +17,17 @@ async function getAllProducts(req, res) {
 
 async function createProduct(req, res) {
     try {
-
         const product = await productService.createProduct(
-            req.body
+            req.body,
+            req.headers.authorization
         );
 
         res.status(201).json(product);
-
     } catch (error) {
-
+        console.error("Error creating product:", error);
         res.status(500).json({
             message: error.message
         });
-
     }
 }
 

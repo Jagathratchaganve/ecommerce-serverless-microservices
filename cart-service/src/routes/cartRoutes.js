@@ -10,6 +10,12 @@ const authorize = require("../middleware/authorize");
 router.use(authenticate);
 
 router.get(
+    "/all",
+    authorize("Admin"),
+    cartController.getAllCarts
+);
+
+router.get(
     "/",
     authorize("Admin", "User"),
     cartController.getMyCart
@@ -25,6 +31,12 @@ router.post(
     "/items",
     authorize("Admin", "User"),
     cartController.addItemToCart
+);
+
+router.post(
+    "/clear",
+    authorize("Admin", "User"),
+    cartController.removePurchasedItems
 );
 
 router.put(

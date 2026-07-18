@@ -12,7 +12,7 @@ router.use(authenticate);
 
 router.get(
     "/",
-    authorize("Admin", "User"),
+    authorize("Admin"),
     inventoryController.getAllInventory
 );
 

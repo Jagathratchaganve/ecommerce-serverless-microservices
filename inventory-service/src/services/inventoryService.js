@@ -1,22 +1,17 @@
 const axios = require("axios");
-
 const dynamoDB = require("../config/dynamodb");
 
 const {
     ScanCommand,
     GetCommand,
     PutCommand,
-    UpdateCommand,
     DeleteCommand
 } = require("@aws-sdk/lib-dynamodb");
 
 const TABLE_NAME = process.env.INVENTORY_TABLE || "Inventory";
 
-console.log("PRODUCT_SERVICE_URL:", process.env.PRODUCT_SERVICE_URL);
-
 // Get All Inventory
 async function getInventory() {
-
     const result = await dynamoDB.send(
         new ScanCommand({
             TableName: TABLE_NAME
@@ -26,127 +21,98 @@ async function getInventory() {
     return result.Items || [];
 }
 
-// Create Inventory
-async function createInventory(
-    inventoryData,
-    accessToken
-) {
-
-    // Verify Product Exists
-    try {
-
-        await axios.get(
-
-            `${process.env.PRODUCT_SERVICE_URL}/api/products/${inventoryData.productId}`,
-
-            {
-
-                headers: {
-
-                    Authorization: accessToken
-
-                }
-
-            }
-
-        );
-
-    } catch (error) {
-
-        if (error.response && error.response.status === 404) {
-            throw new Error("Product does not exist");
-        }
-
-        throw new Error("Unable to connect to Product Service");
+// Create Inventory (Called automatically by Product Service HTTP request)
+async function createInventory(inventoryData, accessToken) {
+    const productId = inventoryData.productId;
+    if (!productId) {
+        throw new Error("productId is required to create inventory");
     }
 
-    // Check Inventory Already Exists
-    const existingItem = await getInventoryByProductId(
-        inventoryData.productId
-    );
-
+    // Check if inventory record already exists
+    const existingItem = await getInventoryByProductId(productId);
     if (existingItem) {
-        throw new Error(
-            "Inventory already exists for this product"
-        );
+        return existingItem;
     }
+
+    const newItem = {
+        productId,
+        totalStock: Number(inventoryData.totalStock || 0),
+        availableStock: Number(inventoryData.availableStock || 0),
+        reservedStock: Number(inventoryData.reservedStock || 0),
+        lastUpdated: new Date().toISOString()
+    };
 
     await dynamoDB.send(
         new PutCommand({
             TableName: TABLE_NAME,
-            Item: inventoryData
+            Item: newItem
         })
     );
 
-    return inventoryData;
+    return newItem;
 }
 
 // Get Inventory By Product Id
-// Get Inventory By Product Id
 async function getInventoryByProductId(productId) {
-
     const result = await dynamoDB.send(
-
         new GetCommand({
-
             TableName: TABLE_NAME,
-
             Key: {
-
                 productId
-
             }
-
         })
-
     );
 
     return result.Item || null;
-
 }
 
-// Update Inventory
+// Update Inventory (Admin Stock Update)
 async function updateInventory(productId, updatedData) {
+    const existing = await getInventoryByProductId(productId);
+    if (!existing) {
+        // If not exists, initialize with updatedData
+        const newItem = {
+            productId,
+            totalStock: Number(updatedData.totalStock || 0),
+            availableStock: Number(updatedData.availableStock || 0),
+            reservedStock: Number(updatedData.reservedStock || 0),
+            lastUpdated: new Date().toISOString()
+        };
 
-    const updateExpression = [];
-    const expressionAttributeNames = {};
-    const expressionAttributeValues = {};
-
-    for (const key in updatedData) {
-
-        updateExpression.push(`#${key} = :${key}`);
-
-        expressionAttributeNames[`#${key}`] = key;
-
-        expressionAttributeValues[`:${key}`] = updatedData[key];
-    }
-
-    try {
-
-        const result = await dynamoDB.send(
-            new UpdateCommand({
+        await dynamoDB.send(
+            new PutCommand({
                 TableName: TABLE_NAME,
-                Key: {
-                    productId
-                },
-                UpdateExpression: `SET ${updateExpression.join(", ")}`,
-                ExpressionAttributeNames: expressionAttributeNames,
-                ExpressionAttributeValues: expressionAttributeValues,
-                ReturnValues: "ALL_NEW"
+                Item: newItem
             })
         );
 
-        return result.Attributes;
-
-    } catch (error) {
-
-        return null;
+        return newItem;
     }
+
+    const totalStock = updatedData.totalStock !== undefined ? Number(updatedData.totalStock) : Number(existing.totalStock || 0);
+    const availableStock = updatedData.availableStock !== undefined ? Number(updatedData.availableStock) : Number(existing.availableStock || 0);
+    const reservedStock = updatedData.reservedStock !== undefined ? Number(updatedData.reservedStock) : Number(existing.reservedStock || 0);
+
+    const updatedItem = {
+        ...existing,
+        totalStock,
+        availableStock,
+        reservedStock,
+        lastUpdated: new Date().toISOString()
+    };
+
+    await dynamoDB.send(
+        new PutCommand({
+            TableName: TABLE_NAME,
+            Item: updatedItem
+        })
+    );
+
+    return updatedItem;
 }
 
 // Delete Inventory
 async function deleteInventory(productId) {
-
     const result = await dynamoDB.send(
         new DeleteCommand({
             TableName: TABLE_NAME,

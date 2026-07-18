@@ -1,109 +1,88 @@
-const dynamoDB =
-require("../config/dynamodb");
+const dynamoDB = require("../config/dynamodb");
+const { GetCommand, PutCommand } = require("@aws-sdk/lib-dynamodb");
 
-const {
-
-    GetCommand,
-
-    PutCommand
-
-} = require("@aws-sdk/lib-dynamodb");
-
-const TABLE_NAME =
-process.env.INVENTORY_TABLE || "Inventory";
+const TABLE_NAME = process.env.INVENTORY_TABLE || "Inventory";
 
 async function processEvent(event) {
+    console.log("Processing SQS Event:", JSON.stringify(event, null, 2));
 
-    console.log(
-        JSON.stringify(event, null, 2)
-    );
+    if (!event.Records || !Array.isArray(event.Records)) {
+        console.log("No records in event.");
+        return { statusCode: 200, body: "No records to process" };
+    }
 
     for (const record of event.Records) {
+        try {
+            const snsMessage = typeof record.body === "string" ? JSON.parse(record.body) : record.body;
 
-        const snsMessage =
-        JSON.parse(record.body);
+            // Handle direct message or SNS wrapped message
+            const payload = typeof snsMessage.Message === "string" ? JSON.parse(snsMessage.Message) : (snsMessage.Message || snsMessage);
 
-        const paymentEvent =
-        JSON.parse(
-            snsMessage.Message
-        );
+            console.log("Parsed Event Payload:", payload);
 
-        console.log(
-            "Received Event:",
-            paymentEvent
-        );
+            // Filter event: Ignore any event that is not PAYMENT_SUCCESS
+            if (payload.event !== "PAYMENT_SUCCESS") {
+                console.log(`Ignoring event type: ${payload.event || 'UNKNOWN'}`);
+                continue;
+            }
 
-        const productId =
-        paymentEvent.productId;
+            // Extract items list or single product
+            const items = payload.items && Array.isArray(payload.items) && payload.items.length > 0
+                ? payload.items
+                : [{ productId: payload.productId, quantity: payload.quantity || 1 }];
 
-        const orderedQuantity =
-        paymentEvent.quantity;
+            for (const item of items) {
+                const productId = item.productId;
+                const orderedQuantity = Number(item.quantity || 1);
 
-        const result =
-        await dynamoDB.send(
-
-            new GetCommand({
-
-                TableName: TABLE_NAME,
-
-                Key: {
-
-                    productId
-
+                if (!productId) {
+                    console.warn("Skipping item with missing productId:", item);
+                    continue;
                 }
 
-            })
+                const result = await dynamoDB.send(
+                    new GetCommand({
+                        TableName: TABLE_NAME,
+                        Key: {
+                            productId
+                        }
+                    })
+                );
 
-        );
+                const inventory = result.Item;
 
-        const inventory =
-        result.Item;
+                if (!inventory) {
+                    console.warn(`Inventory record not found for productId: ${productId}`);
+                    continue;
+                }
 
-        if (!inventory) {
+                // Reduce availableStock (Never reduce totalStock)
+                const currentAvailable = Number(inventory.availableStock !== undefined ? inventory.availableStock : (inventory.quantity || 0));
+                const newAvailable = Math.max(0, currentAvailable - orderedQuantity);
 
-            console.log(
-                "Inventory not found."
-            );
+                inventory.availableStock = newAvailable;
+                inventory.lastUpdated = new Date().toISOString();
 
-            continue;
+                await dynamoDB.send(
+                    new PutCommand({
+                        TableName: TABLE_NAME,
+                        Item: inventory
+                    })
+                );
+
+                console.log(`Successfully updated inventory for ${productId}: availableStock set to ${newAvailable} (Reduced by ${orderedQuantity})`);
+            }
+        } catch (recordError) {
+            console.error("Error processing record in inventory consumer:", recordError);
         }
-
-        inventory.quantity =
-        inventory.quantity -
-        orderedQuantity;
-
-        await dynamoDB.send(
-
-            new PutCommand({
-
-                TableName: TABLE_NAME,
-
-                Item: inventory
-
-            })
-
-        );
-
-        console.log(
-
-            `Inventory Updated for ${productId}`
-
-        );
-
     }
 
     return {
-
         statusCode: 200,
-
-        body: "Inventory Updated"
-
+        body: "Inventory Stock Reduction Processed Successfully"
     };
-
 }
 
 module.exports = {
-
     processEvent
-
 };
