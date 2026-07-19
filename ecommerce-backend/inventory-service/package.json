@@ -1,0 +1,29 @@
+{
+  "name": "inventory-service",
+  "version": "1.0.0",
+  "description": "Inventory Service - AWS Lambda",
+  "main": "handler.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.1077.0",
+    "@aws-sdk/lib-dynamodb": "^3.1077.0",
+    "aws-jwt-verify": "^5.2.1",
+    "axios": "^1.18.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^4.21.2",
+    "serverless-http": "^4.0.0",
+    "uuid": "^9.0.1",
+    "winston": "^3.19.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
