@@ -1,0 +1,17 @@
+{
+  "name": "ecommerce-backend-root",
+  "version": "1.0.0",
+  "description": "Root runner and consolidated testing/coverage for E-Commerce backend microservices",
+  "main": "run-all-backend-tests.js",
+  "scripts": {
+    "test": "node run-all-backend-tests.js",
+    "coverage": "node run-all-backend-tests.js --coverage"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "nyc": "^17.1.0"
+  }
+}

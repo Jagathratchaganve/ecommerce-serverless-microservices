@@ -5,7 +5,10 @@
   "main": "handler.js",
   "scripts": {
     "start": "node handler.js",
-    "dev": "nodemon handler.js"
+    "dev": "nodemon handler.js",
+    "test": "jest --runInBand --detectOpenHandles --forceExit",
+    "test:watch": "jest --watch",
+    "coverage": "jest --coverage --runInBand --detectOpenHandles --forceExit"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +20,25 @@
     "dotenv": "^17.4.2"
   },
   "devDependencies": {
+    "jest": "^30.4.2",
     "nodemon": "^3.1.14"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "clearMocks": true,
+    "collectCoverage": true,
+    "coverageDirectory": "coverage",
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "handler.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 90,
+        "functions": 90,
+        "lines": 90,
+        "statements": 90
+      }
+    }
   }
 }

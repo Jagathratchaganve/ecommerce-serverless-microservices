@@ -16,3 +16,8 @@ Thumbs.db
 
 # VS Code
 .vscode/
+# VS Code
+
+# Coverage
+**/coverage/
+.nyc_output/
